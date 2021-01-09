@@ -2,6 +2,19 @@
 
 `go-rebalance` assists in rebalancing investment portfolios towards to a desired distribution.
 
+## Installation
+
+```
+go install ./cmd/rebalance
+```
+
+### Dependencies
+
+#### COIN-OR linear programming solver
+
+Refer to the upstream documentation for installation instructions.
+See https://www.coin-or.org/downloading/.
+
 
 ## Usage
 
