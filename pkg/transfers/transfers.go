@@ -25,25 +25,33 @@ func Calculate(positions []Position, distributions []Distribution) {
 	balancer := newBalancer(balances)
 	transfers := balancer.optimalTransfers()
 
-	fmt.Println("# Positions")
+	fmt.Printf("# Current positions (# %d)\n", len(positions))
 	for _, p := range positions {
 		fmt.Printf("%-45s: %10.2f %s\n", p.Instrument.Name, p.Value.Value, p.Value.Unit)
 	}
 	fmt.Println()
 
-	fmt.Println("# Distributions")
+	dSum := 0.0
+	for _, d := range distributions {
+		dSum += 100 * d.Distribution
+	}
+	fmt.Printf("# Target distribution (%f %%)\n", dSum)
 	for _, d := range distributions {
 		fmt.Printf("%-45s: %6.2f %%\n", d.InstrumentName, 100*d.Distribution)
 	}
 	fmt.Println()
 
-	fmt.Println("# Deviations")
+	bSum := 0.0
+	for _, balance := range balances {
+		bSum += balance
+	}
+	fmt.Printf("# Calculated deviations (∑ %f)\n", bSum)
 	for instr, balance := range balances {
 		fmt.Printf("%-45s: %10.2f\n", instr, balance)
 	}
 	fmt.Println()
 
-	fmt.Println("# Transfers")
+	fmt.Printf("# Calculated transfers (# %d)\n", len(transfers))
 	for _, t := range transfers {
 		fmt.Printf("%-45s -> %-45s : %10.2f\n", t.from, t.to, t.amount)
 	}
