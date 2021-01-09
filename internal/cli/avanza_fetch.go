@@ -2,17 +2,41 @@ package cli
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/spf13/cobra"
 	"gitlab.joelpet.se/joelpet/go-rebalance/pkg/avanza"
+	"golang.org/x/term"
 )
 
 var avanzaFetchCmd = &cobra.Command{
 	Use: "fetch",
 	Run: func(cmd *cobra.Command, args []string) {
+		var password string
+		if password = os.Getenv("GO_REBALANCE_AVANZA_PASSWORD"); password == "" {
+			fmt.Print("Password [GO_REBALANCE_AVANZA_PASSWORD]: ")
+			if input, err := term.ReadPassword(int(os.Stdin.Fd())); err != nil {
+				log.Fatal(err)
+			} else {
+				password = string(input)
+				fmt.Println()
+			}
+		}
+
+		var totp string
+		if totp = os.Getenv("GO_REBALANCE_AVANZA_TOTP"); totp == "" {
+			fmt.Print("TOTP [GO_REBALANCE_AVANZA_TOTP]: ")
+			if input, err := term.ReadPassword(int(os.Stdin.Fd())); err != nil {
+				log.Fatal(err)
+			} else {
+				totp = string(input)
+				fmt.Println()
+			}
+		}
+
 		var azaclt *avanza.Client
 		var err error
 		if azaclt, err = avanza.NewClient(); err != nil {
@@ -49,22 +73,6 @@ var avanzaFetchCmd = &cobra.Command{
 	},
 }
 
-var (
-	password string
-	totp     string
-)
-
 func init() {
 	avanzaCmd.AddCommand(avanzaFetchCmd)
-
-	// TODO: Read password and TOTP securely (environment or prompt)
-	avanzaFetchCmd.
-		Flags().
-		StringVar(&password, "password", "", "Password for authenticating")
-	avanzaFetchCmd.
-		Flags().
-		StringVar(&totp, "totp", "", "TOTP for authenticating")
-
-	avanzaFetchCmd.MarkFlagRequired("password")
-	avanzaFetchCmd.MarkFlagRequired("totp")
 }

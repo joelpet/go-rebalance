@@ -7,4 +7,5 @@ require (
 	github.com/lanl/clp v0.0.0-20200106184146-210581cb776d
 	github.com/spf13/cobra v0.0.6
 	golang.org/x/net v0.0.0-20190522155817-f3200d17e092
+	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 )
