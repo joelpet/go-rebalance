@@ -7,7 +7,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "rebalance",
+	Use:   "rebalance",
+	Short: "rebalance investment portfolios towards a desired distribution",
 }
 
 func Execute() {

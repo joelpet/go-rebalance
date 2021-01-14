@@ -10,7 +10,7 @@ import (
 
 var avanzaCalculateCmd = &cobra.Command{
 	Use:   "calculate",
-	Short: "Calculate transfers for rebalancing positions on an Avanza account according to its monthly savings distribution.",
+	Short: "Calculate transfers to rebalance positions on an account according to its monthly savings distribution.",
 	Run: func(cmd *cobra.Command, args []string) {
 		instrumentPositionsFile, err := avanzaInstrumentPositionsCacheFile(username)
 		if err != nil {

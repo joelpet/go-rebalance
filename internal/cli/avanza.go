@@ -8,7 +8,8 @@ import (
 )
 
 var avanzaCmd = &cobra.Command{
-	Use: "avanza",
+	Use:   "avanza",
+	Short: "Manage Avanza rebalancing",
 }
 
 func avanzaInstrumentPositionsCacheFile(username string) (string, error) {

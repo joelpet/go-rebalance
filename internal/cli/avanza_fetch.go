@@ -13,7 +13,8 @@ import (
 )
 
 var avanzaFetchCmd = &cobra.Command{
-	Use: "fetch",
+	Use:   "fetch",
+	Short: "Fetch account data from Avanza through the web API.",
 	Run: func(cmd *cobra.Command, args []string) {
 		var password string
 		if password = os.Getenv("GO_REBALANCE_AVANZA_PASSWORD"); password == "" {
