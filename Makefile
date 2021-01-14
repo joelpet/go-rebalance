@@ -9,6 +9,14 @@ all: build
 
 out: ; mkdir -p $@
 
+.PHONY: vet
+vet:
+	go vet ./...
+
+.PHONY: test
+test:
+	go test ./...
+
 .PHONY: build
 build: | out
 	go build -o out/ $(build_flags) ./cmd/rebalance
