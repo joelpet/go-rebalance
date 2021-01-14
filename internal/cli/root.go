@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
 	"log"
+
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -15,4 +16,5 @@ func Execute() {
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Llongfile)
+
 }
