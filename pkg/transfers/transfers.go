@@ -52,9 +52,15 @@ func Calculate(positions []Position, distributions []Distribution) {
 	}
 	fmt.Println()
 
+	positionValue := map[string]Value{}
+	for _, pos := range positions {
+		positionValue[pos.Instrument.Name] = pos.Value
+	}
+
 	fmt.Printf("# Calculated transfers (# %d)\n", len(transfers))
 	for _, t := range transfers {
-		fmt.Printf("%-45s -> %-45s : %10.2f\n", t.from, t.to, t.amount)
+		volume := t.amount / positionValue[t.from].Value * 100
+		fmt.Printf("%-45s -> %-45s : %10.2f   (%20.16f %%)\n", t.from, t.to, t.amount, volume)
 	}
 }
 
