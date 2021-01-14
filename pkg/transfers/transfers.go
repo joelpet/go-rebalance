@@ -3,9 +3,10 @@ package transfers
 import (
 	"errors"
 	"fmt"
-	"github.com/lanl/clp"
 	"log"
 	"math"
+
+	"github.com/lanl/clp"
 )
 
 // Calculate finds a smallest set of amounts to transfer that balances the given
@@ -133,12 +134,27 @@ func newBalanceCalculator(totalValue float64, dists []Distribution) balanceCalcu
 	return calculator
 }
 
-func (c balanceCalculator) include(pos Position) {
+func (c balanceCalculator) includePosition(pos Position) {
 	instrName := pos.Instrument.Name
 	targetDist := c.instrDist[instrName].Distribution
 	targetValue := targetDist * c.total
 	currentValue := pos.Value.Value
 	c.balances[instrName] = currentValue - targetValue
+}
+
+func (c balanceCalculator) includeDistribution(dist Distribution) {
+	if _, ok := c.balances[dist.InstrumentName]; !ok {
+		c.includePosition(Position{
+			Instrument: Fund{
+				BaseInstrument: BaseInstrument{
+					Name: dist.InstrumentName,
+				},
+			},
+			Value: Value{
+				Value: 0,
+			},
+		})
+	}
 }
 
 func calculateBalances(positions []Position, distributions []Distribution) (map[string]float64, error) {
@@ -159,7 +175,11 @@ func calculateBalances(positions []Position, distributions []Distribution) (map[
 
 	balanceCalculator := newBalanceCalculator(posSummer.total(), distributions)
 	for _, position := range positions {
-		balanceCalculator.include(position)
+		balanceCalculator.includePosition(position)
+	}
+
+	for _, distribution := range distributions {
+		balanceCalculator.includeDistribution(distribution)
 	}
 
 	return balanceCalculator.balances, nil

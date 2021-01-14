@@ -51,3 +51,44 @@ func TestCalculateBalances(t *testing.T) {
 		t.Errorf("balances[C fund] = %f, want %f", got, want)
 	}
 }
+
+func TestCalculateBalances_NonOverlapping(t *testing.T) {
+	positions := []Position{
+		{
+			ID:         "A",
+			Instrument: Fund{BaseInstrument{Name: "A fund"}},
+			Value:      Value{Value: 50.00},
+		},
+		{
+			ID:         "B",
+			Instrument: Fund{BaseInstrument{Name: "B fund"}},
+			Value:      Value{Value: 50.00},
+		},
+	}
+	distributions := []Distribution{
+		{
+			InstrumentName: "B fund",
+			Distribution:   0.50,
+			// target value: 50
+		},
+		{
+			InstrumentName: "C fund",
+			Distribution:   0.50,
+			// target value: 50
+		},
+	}
+	balances, err := calculateBalances(positions, distributions)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want, got := 50., balances["A fund"]; want != got {
+		t.Errorf("balances[A fund] = %f, want %f", got, want)
+	}
+	if want, got := 0., balances["B fund"]; want != got {
+		t.Errorf("balances[B fund] = %f, want %f", got, want)
+	}
+	if want, got := -50., balances["C fund"]; want != got {
+		t.Errorf("balances[C fund] = %f, want %f", got, want)
+	}
+}
