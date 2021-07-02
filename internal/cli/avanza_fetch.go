@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -30,11 +31,11 @@ var avanzaFetchCmd = &cobra.Command{
 		var totp string
 		if totp = os.Getenv("GO_REBALANCE_AVANZA_TOTP"); totp == "" {
 			fmt.Print("TOTP [GO_REBALANCE_AVANZA_TOTP]: ")
-			if input, err := term.ReadPassword(int(os.Stdin.Fd())); err != nil {
+			s := bufio.NewScanner(os.Stdin)
+			if _, err, input := s.Scan(), s.Err(), s.Text(); err != nil {
 				log.Fatal(err)
 			} else {
 				totp = string(input)
-				fmt.Println()
 			}
 		}
 
