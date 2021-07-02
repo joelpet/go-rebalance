@@ -21,7 +21,7 @@ See https://www.coin-or.org/downloading/.
 1. Fetch your data from Avanza, e.g.:
 
 ```
-rebalance avanza fetch --username 1111111
+rebalance avanza --username 1111111 fetch
 ```
 
 2. Calculate transfers for rebalancing, e.g.:
