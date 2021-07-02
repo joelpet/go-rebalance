@@ -51,7 +51,7 @@ var avanzaFetchCmd = &cobra.Command{
 		}
 
 		// Cache monthly savings
-		if monthlySavings, err := azaclt.GetMonthlySavings(); err != nil {
+		if monthlySavings, err := azaclt.GetPeriodicSavings(); err != nil {
 			log.Fatal(err)
 		} else if data, err := json.Marshal(monthlySavings); err != nil {
 			log.Fatal(err)

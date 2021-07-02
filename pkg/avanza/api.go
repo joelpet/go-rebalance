@@ -154,29 +154,29 @@ func (c *Client) GetPositions() (*PositionsPayload, error) {
 	return &payload, nil
 }
 
-func (c *Client) GetMonthlySavings() (*MonthlySavingsPayload, error) {
-	url := c.baseURL + "/_cqbe/transfer/monthly-savings/monthly-savings-list"
+func (c *Client) GetPeriodicSavings() (*PeriodicSavingsPayload, error) {
+	url := c.baseURL + "/_cqbe/fund/periodic-saving/get-periodic-savings"
 
 	req, err := c.newJSONReq(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("avanza: creating get monthly savings request: %s", err)
+		return nil, fmt.Errorf("avanza: creating get periodic savings request: %s", err)
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("avanza: getting monthly savings: %s", err)
+		return nil, fmt.Errorf("avanza: getting periodic savings: %s", err)
 	} else if resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("avanza: getting monthly savings: unexpected response status: %s", resp.Status)
+		return nil, fmt.Errorf("avanza: getting periodic savings: unexpected response status: %s", resp.Status)
 	}
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("avanza: reading monthly savings response body: %s", err)
+		return nil, fmt.Errorf("avanza: reading periodic savings response body: %s", err)
 	}
 
-	var payload MonthlySavingsPayload
+	var payload PeriodicSavingsPayload
 	if err := json.Unmarshal(respBody, &payload); err != nil {
-		return nil, fmt.Errorf("avanza: unmarshalling monthly savings payload: %s", err)
+		return nil, fmt.Errorf("avanza: unmarshalling periodic savings payload: %s", err)
 	}
 
 	return &payload, nil
@@ -247,36 +247,15 @@ type PositionsPayload struct {
 	} `json:"instrumentPositions"`
 }
 
-type MonthlySavingsPayload struct {
-	MonthlySavingsViews []struct {
-		FundDistributionInfo struct {
-			FundBuyDay struct {
-				// Fund buy day, e.g. 29
-				Day int `json:"day"`
-			} `json:"fundBuyDay"`
-			Orderbooks []struct {
-				// Buyable, e.g. true
-				Buyable bool `json:"buyable"`
+type PeriodicSavingsPayload struct {
+	PeriodicSavings []struct {
+		AccountID       int `json:"accountId"`
+		AllocationViews []struct {
+			Allocation  float32 `json:"allocation"`
+			Name        string  `json:"name"`
+			OrderbookID int     `json:"orderbookId"`
+		} `json:"allocationViews"`
 
-				// Share, e.g. 5.0
-				Share float32 `json:"share"`
-
-				// Instrument name, e.g. "Avanza USA"
-				Name string `json:"name"`
-
-				// "marketLink": {
-				// 	"tradeable": true,
-				// 	"buyable": true,
-				// 	"sellable": true,
-				// 	"shortLinkDisplay": "Avanza USA",
-				// 	"linkDisplay": "Avanza USA",
-				// 	"urlDisplayName": "avanza-usa",
-				// 	"orderbookId": "1025150",
-				// 	"flagCode": "",
-				// 	"type": "FUND"
-
-			} `json:"orderbooks"`
-		} `json:"fundDistributionInfo"`
 		AccountInfo struct {
 			AccountIdentifier struct {
 				// Account id, e.g. "5555555"
@@ -287,5 +266,5 @@ type MonthlySavingsPayload struct {
 		} `json:"accountInfo"`
 		// Monthly savings id, e.g. "A1^1608186314557^55559"
 		MonthlySavingsID string `json:"monthlySavingsId"`
-	} `json:"monthlySavingsViews"`
+	} `json:"periodicSavings"`
 }

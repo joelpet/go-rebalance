@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 
 	"gitlab.joelpet.se/joelpet/go-rebalance/pkg/transfers"
 )
@@ -55,7 +56,7 @@ func FilterPositions(positions []transfers.Position, accountID string) []transfe
 }
 
 func ReadDistribution(filename string, accountID string) ([]transfers.Distribution, error) {
-	var azadist MonthlySavingsPayload
+	var azadist PeriodicSavingsPayload
 	if contents, err := ioutil.ReadFile(filename); err != nil {
 		return nil, fmt.Errorf("avanza: reading monthly savings file: %s", err)
 	} else if err := json.Unmarshal(contents, &azadist); err != nil {
@@ -63,12 +64,12 @@ func ReadDistribution(filename string, accountID string) ([]transfers.Distributi
 	}
 
 	var distributions []transfers.Distribution
-	for _, v := range azadist.MonthlySavingsViews {
-		if v.AccountInfo.AccountIdentifier.ID == accountID {
-			for _, d := range v.FundDistributionInfo.Orderbooks {
+	for _, ps := range azadist.PeriodicSavings {
+		if strconv.Itoa(ps.AccountID) == accountID {
+			for _, av := range ps.AllocationViews {
 				distribution := transfers.Distribution{
-					InstrumentName: d.Name,
-					Distribution:   float64(d.Share) / 100,
+					InstrumentName: av.Name,
+					Distribution:   float64(av.Allocation) / 100,
 				}
 				distributions = append(distributions, distribution)
 			}
