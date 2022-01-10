@@ -65,7 +65,7 @@ func ReadDistribution(filename string, accountID string) ([]transfers.Distributi
 
 	var distributions []transfers.Distribution
 	for _, ps := range azadist.PeriodicSavings {
-		if strconv.Itoa(ps.AccountID) == accountID {
+		if strconv.Itoa(ps.Account.AccountID) == accountID {
 			for _, av := range ps.AllocationViews {
 				distribution := transfers.Distribution{
 					InstrumentName: av.Name,

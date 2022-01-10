@@ -155,7 +155,7 @@ func (c *Client) GetPositions() (*PositionsPayload, error) {
 }
 
 func (c *Client) GetPeriodicSavings() (*PeriodicSavingsPayload, error) {
-	url := c.baseURL + "/_cqbe/fund/periodic-saving/get-periodic-savings"
+	url := c.baseURL + "/_api/periodic-fund-saving/get-periodic-savings"
 
 	req, err := c.newJSONReq(http.MethodGet, url, nil)
 	if err != nil {
@@ -249,21 +249,17 @@ type PositionsPayload struct {
 
 type PeriodicSavingsPayload struct {
 	PeriodicSavings []struct {
-		AccountID       int `json:"accountId"`
+		Account struct {
+			// Account id, e.g. 5555555
+			AccountID int `json:"accountId"`
+			// Account name, e.g. "Avanza Framtid"
+			AccountName string `json:"accountName"`
+		} `json:"account"`
 		AllocationViews []struct {
 			Allocation  float32 `json:"allocation"`
 			Name        string  `json:"name"`
 			OrderbookID int     `json:"orderbookId"`
 		} `json:"allocationViews"`
-
-		AccountInfo struct {
-			AccountIdentifier struct {
-				// Account id, e.g. "5555555"
-				ID string `json:"id"`
-			} `json:"accountIdentifier"`
-			// Account name, e.g. "Avanza Framtid"
-			AccountName string `json:"accountName"`
-		} `json:"accountInfo"`
 		// Monthly savings id, e.g. "A1^1608186314557^55559"
 		MonthlySavingsID string `json:"monthlySavingsId"`
 	} `json:"periodicSavings"`
