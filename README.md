@@ -1,6 +1,6 @@
 # go-rebalance
 
-`go-rebalance` assists in rebalancing investment portfolios towards to a desired distribution.
+`go-rebalance` assists in rebalancing an investment portfolio towards a desired distribution.
 
 ## Installation
 
