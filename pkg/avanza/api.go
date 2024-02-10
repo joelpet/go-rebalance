@@ -1,68 +1,37 @@
 package avanza
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/cookiejar"
 
-	"golang.org/x/net/publicsuffix"
+	"github.com/imroc/req/v3"
 )
 
 // Client gives access to Avanza's unofficial backend API.
 type Client struct {
-	httpClient     http.Client
-	baseURL        string
-	xSecurityToken string
-	authSession    string
+	req *req.Client
 }
 
 func NewClient() (*Client, error) {
-	// TODO: Try without cookie jar
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
-	if err != nil {
-		return nil, fmt.Errorf("avanza: creating cookie jar: %s", err)
-	}
-	client := &Client{
-		baseURL:    "https://www.avanza.se",
-		httpClient: http.Client{Jar: jar},
-	}
-	return client, nil
+	return &Client{
+		req: req.C().
+			SetBaseURL("https://www.avanza.se"),
+	}, nil
 }
 
-const ctJSON string = "application/json;charset=utf-8"
-
 func (c Client) Authenticate(creds UserCredentials) error {
-	url := c.baseURL + "/_api/authentication/sessions/usercredentials"
-
 	if creds.AuthTimeout < 30 || creds.AuthTimeout > 60*24 {
 		return fmt.Errorf("avanza: invalid auth timeout: %d", creds.AuthTimeout)
 	}
 
-	reqBody, err := json.Marshal(creds)
-	if err != nil {
-		return fmt.Errorf("avanza: marshalling login user credentials: %s", err)
-	}
-
-	resp, err := c.httpClient.Post(url, ctJSON, bytes.NewReader(reqBody))
-	if err != nil {
-		return fmt.Errorf("avanza: authenticating: %s", err)
-	} else if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("avanza: user credentials authentication: unexpected response status: %s", resp.Status)
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("avanza: reading authentication response body: %s", err)
-	}
-
 	var payload authenticatePayload
-	if err := json.Unmarshal(respBody, &payload); err != nil {
-		return fmt.Errorf("avanza: unmarshalling authentication payload: %s", err)
+
+	err := c.req.Post("/_api/authentication/sessions/usercredentials").
+		SetBody(creds).
+		Do().
+		Into(&payload)
+
+	if err != nil {
+		return fmt.Errorf("avanza: post auth req: %v", err)
 	}
 
 	// TODO: Indicate whether two-factor authentication is necessary
@@ -72,111 +41,43 @@ func (c Client) Authenticate(creds UserCredentials) error {
 
 // TOTP performs a time based one-time password two factor login.
 func (c *Client) TOTP(totp TOTP) error {
-	url := c.baseURL + "/_api/authentication/sessions/totp"
+	var payload totpPayload
 
-	reqBody, err := json.Marshal(totp)
-	if err != nil {
-		return fmt.Errorf("avanza: marshalling TOTP request body: %s", err)
-	}
+	err := c.req.Post("/_api/authentication/sessions/totp").
+		SetBody(totp).
+		Do().
+		Into(&payload)
 
-	resp, err := c.httpClient.Post(url, ctJSON, bytes.NewReader(reqBody))
 	if err != nil {
 		return fmt.Errorf("avanza: providing TOTP: %s", err)
-	} else if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("avanza: TOTP authentication: unexpected response status: %s", resp.Status)
-	}
-
-	if c.xSecurityToken = resp.Header.Get("X-SecurityToken"); c.xSecurityToken == "" {
-		return errors.New("avanza: TOTP authentication did not yield the expected security token")
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("avanza: reading totp response body: %s", err)
-	}
-
-	var payload totpPayload
-	if err := json.Unmarshal(respBody, &payload); err != nil {
-		return fmt.Errorf("avanza: unmarshalling totp payload: %s", err)
-	}
-
-	if c.authSession = payload.AuthenticationSession; c.authSession == "" {
-		return errors.New("avanza: TOTP authentication did not yield the expected authentication session")
 	}
 
 	return nil
 }
 
-func (c *Client) newJSONReq(method, url string, body io.Reader) (*http.Request, error) {
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", ctJSON)
-
-	if c.authSession != "" {
-		req.Header.Set("X-AuthenticationSession", c.authSession)
-	}
-
-	if c.xSecurityToken != "" {
-		req.Header.Set("X-SecurityToken", c.xSecurityToken)
-	}
-
-	return req, nil
-}
-
 func (c *Client) GetPositions() (*PositionsPayload, error) {
-	url := c.baseURL + "/_mobile/account/positions"
+	var payload PositionsPayload
 
-	req, err := c.newJSONReq(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("avanza: creating get positions request: %s", err)
-	}
+	err := c.req.Get("/_mobile/account/positions").
+		Do().
+		Into(&payload)
 
-	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("avanza: getting positions: %s", err)
-	} else if resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("avanza: getting positions: unexpected response status: %s", resp.Status)
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("avanza: reading positions response body: %s", err)
-	}
-
-	var payload PositionsPayload
-	if err := json.Unmarshal(respBody, &payload); err != nil {
-		return nil, fmt.Errorf("avanza: unmarshalling positions payload: %s", err)
 	}
 
 	return &payload, nil
 }
 
 func (c *Client) GetPeriodicSavings() (*PeriodicSavingsPayload, error) {
-	url := c.baseURL + "/_api/periodic-fund-saving/get-periodic-savings"
+	var payload PeriodicSavingsPayload
 
-	req, err := c.newJSONReq(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("avanza: creating get periodic savings request: %s", err)
-	}
+	err := c.req.Get("/_api/periodic-fund-saving/get-periodic-savings").
+		Do().
+		Into(&payload)
 
-	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("avanza: getting periodic savings: %s", err)
-	} else if resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("avanza: getting periodic savings: unexpected response status: %s", resp.Status)
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("avanza: reading periodic savings response body: %s", err)
-	}
-
-	var payload PeriodicSavingsPayload
-	if err := json.Unmarshal(respBody, &payload); err != nil {
-		return nil, fmt.Errorf("avanza: unmarshalling periodic savings payload: %s", err)
 	}
 
 	return &payload, nil
