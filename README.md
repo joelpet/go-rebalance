@@ -35,3 +35,9 @@ The account id is normally the same as the account number.
 3. Sanity check the suggested transfers.
 
 4. Carry out the transfers using your favorite Avanza UI.
+
+## License
+
+GNU General Public License v3.0 or later
+
+See [COPYING](COPYING) to see the full text.
