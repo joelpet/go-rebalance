@@ -58,7 +58,7 @@ func (c *Client) TOTP(totp TOTP) error {
 func (c *Client) GetPositions() (*PositionsPayload, error) {
 	var payload PositionsPayload
 
-	err := c.req.Get("/_mobile/account/positions").
+	err := c.req.Get("/_api/position-data/positions").
 		Do().
 		Into(&payload)
 
@@ -121,31 +121,34 @@ type totpPayload struct {
 }
 
 type PositionsPayload struct {
-	InstrumentPositions []struct {
-		Positions []struct {
-			// Name, e.g. "Avanza Zero"
+	WithOrderbook    []Position `json:"withOrderbook"`
+	WithoutOrderbook []Position `json:"withoutOrderbook"`
+	CashPositions    []struct {
+		Account struct {
+			ID   string `json:"id"`
 			Name string `json:"name"`
+		} `json:"account"`
+		TotalBalance struct {
+			Value float64 `json:"value"`
+			Unit  string  `json:"unit"`
+		} `json:"totalBalance"`
+	} `json:"cashPositions"`
+}
 
-			// Tradable, e.g. true
-			Tradable bool `json:"tradable"`
-
-			// Orderbook id, e.g. "143369"
-			OrderbookID string `json:"orderbookId"`
-
-			// Currency, e.g. "SEK"
-			Currency string `json:"currency"`
-
-			// Value, e.g. 917.09
-			Value float32 `json:"value"`
-
-			// Account id, e.g. "1111111",
-			AccountID string `json:"accountId"`
-
-			// Account name, e.g. "Avanza Framtid"
-			AccountName string `json:"accountName"`
-		} `json:"positions"`
-		InstrumentType string `json:"instrumentType"`
-	} `json:"instrumentPositions"`
+type Position struct {
+	Account struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"account"`
+	Instrument struct {
+		ID       string `json:"id"`
+		Name     string `json:"name"`
+		Currency string `json:"currency"`
+	} `json:"instrument"`
+	Value struct {
+		Value float64 `json:"value"`
+		Unit  string  `json:"unit"`
+	} `json:"value"`
 }
 
 type PeriodicSavingsPayload struct {

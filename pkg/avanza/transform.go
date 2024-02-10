@@ -19,26 +19,24 @@ func ReadAllPositions(filename string) ([]transfers.Position, error) {
 	}
 
 	var positions []transfers.Position
-	for _, p := range azapos.InstrumentPositions {
-		for _, p := range p.Positions {
-			position := transfers.Position{
-				Account: transfers.Account{
-					ID:   p.AccountID,
-					Name: p.AccountName,
+	for _, p := range azapos.WithOrderbook {
+		position := transfers.Position{
+			Account: transfers.Account{
+				ID:   p.Account.ID,
+				Name: p.Account.Name,
+			},
+			Instrument: transfers.Fund{
+				BaseInstrument: transfers.BaseInstrument{
+					Name:     p.Instrument.Name,
+					Currency: p.Instrument.Currency,
 				},
-				Instrument: transfers.Fund{
-					BaseInstrument: transfers.BaseInstrument{
-						Name:     p.Name,
-						Currency: p.Currency,
-					},
-				},
-				Value: transfers.Value{
-					Value: float64(p.Value),
-					Unit:  p.Currency,
-				},
-			}
-			positions = append(positions, position)
+			},
+			Value: transfers.Value{
+				Value: p.Value.Value,
+				Unit:  p.Value.Unit,
+			},
 		}
+		positions = append(positions, position)
 	}
 
 	return positions, nil
